@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Student Result Search</title>
+
+    <style>
+
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg-void: #0a0a10;
+            --bg-panel: #14141d;
+            --line: #2a2a38;
+            --gold: #c9a24b;
+            --gold-soft: rgba(201, 162, 75, 0.35);
+            --ember: #a24b4b;
+            --text-main: #e9e5da;
+            --text-dim: #8b889c;
+            --grade-s: #c9a24b;
+            --grade-a: #6f9e7c;
+            --grade-b: #7c93b0;
+            --grade-c: #b08d5a;
+            --grade-f: #a24b4b;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            background: var(--bg-void);
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(162, 75, 75, 0.10), transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(201, 162, 75, 0.08), transparent 45%);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* drifting embers */
+        .ember-field {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .ember {
+            position: absolute;
+            bottom: -10px;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--gold);
+            opacity: 0;
+            animation: rise 12s linear infinite;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 72px 24px 100px;
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            font-size: 2.6rem;
+            letter-spacing: 0.02em;
+            text-align: center;
+            margin: 0 0 8px;
+            color: var(--text-main);
+            opacity: 0;
+            animation: reveal 0.9s ease-out 0.1s forwards;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.92rem;
+            letter-spacing: 0.03em;
+            margin-bottom: 48px;
+            opacity: 0;
+            animation: reveal 0.9s ease-out 0.3s forwards;
+        }
+
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+            opacity: 0;
+            animation: reveal 0.9s ease-out 0.5s forwards;
+        }
+
+        input {
+            flex: 1;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.98rem;
+            padding: 14px 16px;
+            border-radius: 6px;
+            outline: none;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+
+        input::placeholder { color: var(--text-dim); }
+
+        input:focus {
+            border-color: var(--gold-soft);
+            box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.12);
+        }
+
+        button {
+            border: none;
+            background: linear-gradient(135deg, #d9b869, var(--gold));
+            color: #1a1408;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.92rem;
+            padding: 14px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(201, 162, 75, 0.25);
+            filter: brightness(1.05);
+        }
+
+        button:active { transform: translateY(0); }
+
+        #result { margin-top: 36px; }
+
+        .student-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            animation: cardIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .student-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .student-card h2 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin: 0 0 6px;
+            color: var(--gold);
+        }
+
+        .student-card p {
+            margin: 4px 0;
+            color: var(--text-dim);
+            font-size: 0.92rem;
+        }
+
+        .student-card p strong { color: var(--text-main); font-weight: 500; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.92rem;
+        }
+
+        th, td {
+            border: none;
+            border-bottom: 1px solid var(--line);
+            padding: 12px 10px;
+            text-align: left;
+        }
+
+        th {
+            color: var(--text-dim);
+            font-weight: 500;
+            font-size: 0.8rem;
+            letter-spacing: 0.03em;
+        }
+
+        tbody tr {
+            opacity: 0;
+            animation: rowIn 0.4s ease-out forwards;
+        }
+
+        tbody tr:nth-child(1) { animation-delay: 0.05s; }
+        tbody tr:nth-child(2) { animation-delay: 0.1s; }
+        tbody tr:nth-child(3) { animation-delay: 0.15s; }
+        tbody tr:nth-child(4) { animation-delay: 0.2s; }
+        tbody tr:nth-child(5) { animation-delay: 0.25s; }
+        tbody tr:nth-child(6) { animation-delay: 0.3s; }
+        tbody tr:nth-child(7) { animation-delay: 0.35s; }
+        tbody tr:nth-child(8) { animation-delay: 0.4s; }
+
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateX(-6px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        tbody tr:hover { background: rgba(201, 162, 75, 0.05); }
+
+        .grade-pill {
+            display: inline-block;
+            padding: 3px 11px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .not-found {
+            text-align: center;
+            color: var(--ember);
+            background: var(--bg-panel);
+            border: 1px solid rgba(162, 75, 75, 0.35);
+            border-radius: 12px;
+            padding: 28px;
+            font-size: 0.98rem;
+            animation: shake 0.45s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-6px); }
+            40% { transform: translateX(6px); }
+            60% { transform: translateX(-4px); }
+            80% { transform: translateX(4px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="ember-field" id="emberField"></div>
+
+    <div class="container">
+
+        <h1>Student Result Portal</h1>
+        <div class="subtitle">Enter a register number to view results</div>
+
+        <div class="search-box">
+            <input
+                type="text"
+                id="register_number"
+                placeholder="Enter Register Number">
+
+            <button onclick="searchResult()">
+                Search Result
+            </button>
+        </div>
+
+        <div id="result"></div>
+
+    </div>
+
+    <script>
+
+        // ambient ember particles
+        const field = document.getElementById("emberField");
+        for (let i = 0; i < 22; i++) {
+            const e = document.createElement("div");
+            e.className = "ember";
+            e.style.left = Math.random() * 100 + "vw";
+            e.style.animationDelay = (Math.random() * 12) + "s";
+            e.style.animationDuration = (9 + Math.random() * 8) + "s";
+            field.appendChild(e);
+        }
+
+        function gradeColor(grade) {
+            const g = (grade || "").toUpperCase();
+            if (g.startsWith("S")) return "var(--grade-s)";
+            if (g.startsWith("A")) return "var(--grade-a)";
+            if (g.startsWith("B")) return "var(--grade-b)";
+            if (g.startsWith("C")) return "var(--grade-c)";
+            return "var(--grade-f)";
+        }
+
+        async function searchResult() {
+
+            let registerNumber =
+                document.getElementById(
+                    "register_number"
+                ).value;
+
+            let response =
+                await fetch(
+                    "http://127.0.0.1:8000/results"
+                );
+
+            let students =
+                await response.json();
+
+            let student =
+                students.find(
+                    student =>
+                        student.register_number === registerNumber
+                );
+
+            if (student) {
+
+                let output = `
+                    <div class="student-card">
+
+                        <h2>${student.student_name}</h2>
+
+                        <p>
+                            <strong>Register Number:</strong>
+                            ${student.register_number}
+                        </p>
+
+                        <p>
+                            <strong>Department:</strong>
+                            ${student.department}
+                        </p>
+
+                        <table>
+
+                            <tr>
+                                <th>Subject</th>
+                                <th>Grade</th>
+                            </tr>
+                `;
+
+                student.subjects.forEach(subject => {
+
+                    output += `
+                        <tr>
+                            <td>${subject.subject_name}</td>
+                            <td><span class="grade-pill" style="background:${gradeColor(subject.grade)}22; color:${gradeColor(subject.grade)}; border:1px solid ${gradeColor(subject.grade)}55;">${subject.grade}</span></td>
+                        </tr>
+                    `;
+                });
+
+                output += `
+                        </table>
+                    </div>
+                `;
+
+                document.getElementById("result").innerHTML =
+                    output;
+
+            } else {
+
+                document.getElementById("result").innerHTML =
+                    '<div class="not-found">No record found for that register number.</div>';
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
